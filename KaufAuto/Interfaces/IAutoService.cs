@@ -9,6 +9,7 @@ namespace KaufAuto.Interfaces
 {
     public interface IAutoService
     {
+        // interface methoden für auto service
         void Hinzufuegen();
         bool Loeschen(int id);
         void Bearbeiten(int id, Auto neueDaten);

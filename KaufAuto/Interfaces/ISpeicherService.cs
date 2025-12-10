@@ -7,8 +7,10 @@ using KaufAuto.Models;
 
 namespace KaufAuto.Interfaces
 {
+    // <summary>
     public interface ISpeicherService
     {
+        //list speicher methode
         void Speichern(List<Auto> autos);
         List<Auto> Laden();
     }

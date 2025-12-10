@@ -9,6 +9,7 @@ using KaufAuto.Interfaces;
 
 namespace KaufAuto.Services
 {
+    // Service class for saving and loading car data
     public class SpeicherService : ISpeicherService
     {
         private string dateiPfad = "autos.json";
@@ -19,18 +20,23 @@ namespace KaufAuto.Services
 
             Console.WriteLine("Daten wurden erfolgreich gespeichert.");
         }
+        // Load car data from JSON file
 
         public List<Auto> Laden()
         {
             // Datei existiert nicht → leere Liste
+
             if (!File.Exists(dateiPfad))
                 return new List<Auto>();
 
             string json = File.ReadAllText(dateiPfad);
 
             // Datei existiert aber leer
+
             if (string.IsNullOrWhiteSpace(json))
                 return new List<Auto>();
+
+            // JSON parsen
 
             JArray array;
 
@@ -47,6 +53,7 @@ namespace KaufAuto.Services
             var liste = new List<Auto>();
 
             // Jede JSON-Zeile ein Auto
+
             foreach (var item in array)
             {
                 string typ = item["Fahrzeugtyp"]?.ToString();

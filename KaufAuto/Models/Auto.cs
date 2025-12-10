@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace KaufAuto.Models
 {
+    // abstrakte klasse Auto
     public abstract class Auto
     {
         //properties
@@ -21,6 +22,7 @@ namespace KaufAuto.Models
         public int Baujahr { get; set; }
         public string Fahrzeugtyp {  get; set; }
 
+        // abstrakte methode Info
         public abstract void Info();
     }
 }

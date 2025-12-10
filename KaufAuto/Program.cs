@@ -1,9 +1,6 @@
 ﻿using KaufAuto.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using KaufAuto.Models;
 
 namespace KaufAuto
@@ -15,21 +12,19 @@ namespace KaufAuto
             AutoManager manager = new AutoManager();
             SpeicherService speicher = new SpeicherService();
 
-            // Autos beim Start laden
-
-            var geladeneAutos = speicher.Laden();
+            // Autos beim Start laden (null-sicher)
+            var geladeneAutos = speicher.Laden() ?? new List<Auto>();
             manager.SetAutos(geladeneAutos);
 
-            if ( geladeneAutos.Count > 0 )
+            if (geladeneAutos != null && geladeneAutos.Count > 0)
             {
                 Console.WriteLine($"{geladeneAutos.Count} Autos wurden aus der JSON-Datei geladen.");
-
             }
 
             //Loop für das Menü
             bool running = true;
 
-            while (running) 
+            while (running)
             {
                 Console.WriteLine("===============================");
                 Console.WriteLine("      AUTO VERWALTUNG");
@@ -49,48 +44,70 @@ namespace KaufAuto
                 Console.WriteLine("===============================");
                 Console.Write("Auswahl eingeben: ");
 
-                // Benutzereingabe lesen
-                string auswahl = Console.ReadLine();
+                // Benutzereingabe lesen (null-sicher)
+                string auswahl = Console.ReadLine()?.Trim();
                 Console.Clear();
 
                 // Menüauswahl verarbeiten
-
-                switch (auswahl) 
+                switch (auswahl ?? string.Empty)
                 {
                     // Verschiedene Fälle für jede Menüoption
                     //Hinzufügen
                     case "1":
                         manager.Hinzufuegen();
                         break;
+
                     //Löschen
                     case "2":
                         Console.Write("ID eingeben zum Löschen: ");
-                        int idLoeschen;
-                        if (int.TryParse(Console.ReadLine(), out idLoeschen ))
+                        var delInput = Console.ReadLine()?.Trim();
+                        if (!string.IsNullOrWhiteSpace(delInput) && int.TryParse(delInput, out int idLoeschen))
+                        {
                             manager.Loeschen(idLoeschen);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ungültige ID. Bitte eine numerische ID eingeben.");
+                        }
                         break;
+
                     //Bearbeiten
                     case "3":
                         Console.Write("ID eingeben zum Bearbeiten: ");
-                        int idBearbeiten;
-                        if (int.TryParse(Console.ReadLine(), out idBearbeiten))
+                        var editInput = Console.ReadLine()?.Trim();
+                        if (!string.IsNullOrWhiteSpace(editInput) && int.TryParse(editInput, out int idBearbeiten))
+                        {
                             manager.Bearbeiten(idBearbeiten, null);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ungültige ID. Bitte eine numerische ID eingeben.");
+                        }
                         break;
+
                     //Alle anzeigen
                     case "4":
-                        manager.AlleAutos();
+                        manager.AnzeigenAlsTabelle(manager.AlleAutos());
                         break;
+
                     //Suche nach Marke
                     case "5":
-                            Console.Write("Marke eingeben zum Suchen: ");
-                            string marke = Console.ReadLine();
-                             manager.SucheNachMarke(marke);
-                             break;
+                        Console.Write("Marke eingeben zum Suchen: ");
+                        string marke = Console.ReadLine()?.Trim();
+                        if (string.IsNullOrWhiteSpace(marke))
+                        {
+                            Console.WriteLine("Ungültige Marke eingegeben.");
+                        }
+                        else
+                        {
+                            List<Auto> autos = manager.SucheNachMarke(marke);
+                            manager.AnzeigenAlsTabelle(autos);
+                        }
+                        break;
+
                     //Auswertungen
                     case "6":
-
-
-                            var adaten = manager.ErstelleAuswertungen();
+                        var adaten = manager.ErstelleAuswertungen();
                         Console.WriteLine("Auswertungen:");
                         Console.WriteLine($"Gesamtanzahl Autos: {adaten.gesamt}");
                         Console.WriteLine($"Anzahl Neuwagen: {adaten.neu}");
@@ -98,65 +115,68 @@ namespace KaufAuto
                         Console.WriteLine($"Summe Kilometer PKW: {adaten.kmPkw:F2}");
                         Console.WriteLine($"Summe Kilometer Transporter: {adaten.kmTransporter:F2}");
                         break;
+
                     //Speichern
                     case "7":
-
-                        speicher.Speichern(manager.AlleAutos());
-
+                        try
+                        {
+                            speicher.Speichern(manager.AlleAutos());
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Fehler beim Speichern: {ex.Message}");
+                        }
                         break;
 
                     //Laden
                     case "8":
-
-                        geladeneAutos = speicher.Laden();
-                        manager.SetAutos(geladeneAutos);
-                        Console.WriteLine($"{geladeneAutos.Count} Autos wurden neu geladen.");
-
+                        try
+                        {
+                            var neuGeladene = speicher.Laden() ?? new List<Auto>();
+                            manager.SetAutos(neuGeladene);
+                            Console.WriteLine($"{neuGeladene.Count} Autos wurden neu geladen.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Fehler beim Laden: {ex.Message}");
+                        }
                         break;
-
 
                     // Sortieroptionen
-
                     //Nach Preis
                     case "9":
-                            manager.SortNachPreis();
+                        manager.SortNachPreis();
                         Console.WriteLine("Autos nach Preis sortiert.");
                         break;
+
                     //Nach Baujahr
                     case "10":
-                            manager.SortNachBaujahr();
-                            Console.WriteLine("Autos nach Baujahr sortiert.");
+                        manager.SortNachBaujahr();
+                        Console.WriteLine("Autos nach Baujahr sortiert.");
                         break;
+
                     //Nach PS
                     case "11":
-                            manager.SortNachPS();
-                            Console.WriteLine("Autos nach PS sortiert.");
+                        manager.SortNachPS();
+                        Console.WriteLine("Autos nach PS sortiert.");
                         break;
 
                     //Beenden
                     case "0":
-
                         running = false;
                         break;
+
                     //ungültige Auswahl
-
                     default:
-
                         Console.WriteLine("Ungültige Auswahl. Bitte erneut versuchen.");
                         break;
                 }
+
                 // Warten auf Benutzereingabe bevor das Menü neu angezeigt wird
-
                 Console.WriteLine("\nWeiter mit Enter...");
-                 Console.ReadLine();
+                Console.ReadLine();
                 Console.Clear();
-
-
-
-
-
             }
-
         }
     }
 }
