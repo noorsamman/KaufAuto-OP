@@ -36,8 +36,8 @@ namespace KaufAuto.GUI
                 cmbTyp.SelectedItem = auto.Fahrzeugtyp;
                 cmbTyp.Enabled = false;
 
-                txtMarke.Text = auto.Marke;
-                txtModell.Text = auto.Modell;
+                cmbMarke.Text = auto.Marke;
+                cmbModell.Text = auto.Modell;
                 SetzeWert(nudPS, auto.MotorleistungPS);
                 cmbGetriebe.SelectedItem = auto.Getriebe;
                 cmbKraftstoff.SelectedItem = auto.Kraftstoff;
@@ -55,6 +55,47 @@ namespace KaufAuto.GUI
             feld.Value = Math.Min(feld.Maximum, Math.Max(feld.Minimum, wert));
         }
 
+        // für welche Marke die Modell-Liste gerade gefüllt ist
+        private string modellListeFuer;
+
+        // Fahrzeugtyp geändert → passende Marken vorschlagen
+        private void cmbTyp_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ListeFuellen(cmbMarke, FahrzeugKatalog.Marken(cmbTyp.Text));
+            modellListeFuer = null;
+            ModelleAktualisieren();
+        }
+
+        // Marke geändert → passende Modelle vorschlagen
+        private void cmbMarke_TextChanged(object sender, EventArgs e)
+        {
+            ModelleAktualisieren();
+        }
+
+        private void ModelleAktualisieren()
+        {
+            string[] modelle = FahrzeugKatalog.Modelle(cmbTyp.Text, cmbMarke.Text);
+
+            // nur neu füllen, wenn sich die Marke wirklich geändert hat
+            string schluessel = modelle.Length > 0 ? cmbTyp.Text + "|" + cmbMarke.Text.Trim().ToLower() : "";
+            if (schluessel == modellListeFuer)
+                return;
+
+            modellListeFuer = schluessel;
+            ListeFuellen(cmbModell, modelle);
+        }
+
+        // Einträge einer ComboBox ersetzen, eingegebenen Text behalten
+        private static void ListeFuellen(ComboBox liste, string[] eintraege)
+        {
+            string text = liste.Text;
+            liste.BeginUpdate();
+            liste.Items.Clear();
+            liste.Items.AddRange(eintraege);
+            liste.EndUpdate();
+            liste.Text = text;
+        }
+
         // Neuwagen: Kilometerstand immer 0
         private void cmbZustand_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -68,9 +109,9 @@ namespace KaufAuto.GUI
         {
             // Eingaben prüfen
             string fehler = "";
-            if (string.IsNullOrWhiteSpace(txtMarke.Text))
+            if (string.IsNullOrWhiteSpace(cmbMarke.Text))
                 fehler += "- Bitte eine Marke eingeben.\n";
-            if (string.IsNullOrWhiteSpace(txtModell.Text))
+            if (string.IsNullOrWhiteSpace(cmbModell.Text))
                 fehler += "- Bitte ein Modell eingeben.\n";
             if (cmbGetriebe.SelectedIndex < 0)
                 fehler += "- Bitte ein Getriebe auswählen.\n";
@@ -100,8 +141,9 @@ namespace KaufAuto.GUI
                 }
             }
 
-            auto.Marke = txtMarke.Text.Trim();
-            auto.Modell = txtModell.Text.Trim();
+            // "bmw" wird zu "BMW" (Schreibweise aus dem Katalog)
+            auto.Marke = FahrzeugKatalog.MarkeNormalisieren(cmbTyp.Text, cmbMarke.Text);
+            auto.Modell = cmbModell.Text.Trim();
             auto.MotorleistungPS = (int)nudPS.Value;
             auto.Getriebe = cmbGetriebe.Text;
             auto.Kraftstoff = cmbKraftstoff.Text;

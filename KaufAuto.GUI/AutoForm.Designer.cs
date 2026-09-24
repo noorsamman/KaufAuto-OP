@@ -20,9 +20,9 @@ namespace KaufAuto.GUI
             this.lblTyp = new System.Windows.Forms.Label();
             this.cmbTyp = new System.Windows.Forms.ComboBox();
             this.lblMarke = new System.Windows.Forms.Label();
-            this.txtMarke = new System.Windows.Forms.TextBox();
+            this.cmbMarke = new System.Windows.Forms.ComboBox();
             this.lblModell = new System.Windows.Forms.Label();
-            this.txtModell = new System.Windows.Forms.TextBox();
+            this.cmbModell = new System.Windows.Forms.ComboBox();
             this.lblPS = new System.Windows.Forms.Label();
             this.nudPS = new System.Windows.Forms.NumericUpDown();
             this.lblGetriebe = new System.Windows.Forms.Label();
@@ -68,6 +68,7 @@ namespace KaufAuto.GUI
             this.cmbTyp.Name = "cmbTyp";
             this.cmbTyp.Size = new System.Drawing.Size(200, 23);
             this.cmbTyp.TabIndex = 1;
+            this.cmbTyp.SelectedIndexChanged += new System.EventHandler(this.cmbTyp_SelectedIndexChanged);
             //
             // lblMarke
             //
@@ -78,12 +79,16 @@ namespace KaufAuto.GUI
             this.lblMarke.TabIndex = 2;
             this.lblMarke.Text = "Marke:";
             //
-            // txtMarke
+            // cmbMarke
             //
-            this.txtMarke.Location = new System.Drawing.Point(150, 56);
-            this.txtMarke.Name = "txtMarke";
-            this.txtMarke.Size = new System.Drawing.Size(200, 23);
-            this.txtMarke.TabIndex = 3;
+            this.cmbMarke.Location = new System.Drawing.Point(150, 56);
+            this.cmbMarke.Name = "cmbMarke";
+            this.cmbMarke.Size = new System.Drawing.Size(200, 23);
+            this.cmbMarke.TabIndex = 3;
+            this.cmbMarke.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.cmbMarke.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            this.cmbMarke.MaxDropDownItems = 15;
+            this.cmbMarke.TextChanged += new System.EventHandler(this.cmbMarke_TextChanged);
             //
             // lblModell
             //
@@ -94,12 +99,15 @@ namespace KaufAuto.GUI
             this.lblModell.TabIndex = 4;
             this.lblModell.Text = "Modell:";
             //
-            // txtModell
+            // cmbModell
             //
-            this.txtModell.Location = new System.Drawing.Point(150, 92);
-            this.txtModell.Name = "txtModell";
-            this.txtModell.Size = new System.Drawing.Size(200, 23);
-            this.txtModell.TabIndex = 5;
+            this.cmbModell.Location = new System.Drawing.Point(150, 92);
+            this.cmbModell.Name = "cmbModell";
+            this.cmbModell.Size = new System.Drawing.Size(200, 23);
+            this.cmbModell.TabIndex = 5;
+            this.cmbModell.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.cmbModell.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            this.cmbModell.MaxDropDownItems = 15;
             //
             // lblPS
             //
@@ -342,9 +350,9 @@ namespace KaufAuto.GUI
             this.Controls.Add(this.lblTyp);
             this.Controls.Add(this.cmbTyp);
             this.Controls.Add(this.lblMarke);
-            this.Controls.Add(this.txtMarke);
+            this.Controls.Add(this.cmbMarke);
             this.Controls.Add(this.lblModell);
-            this.Controls.Add(this.txtModell);
+            this.Controls.Add(this.cmbModell);
             this.Controls.Add(this.lblPS);
             this.Controls.Add(this.nudPS);
             this.Controls.Add(this.lblGetriebe);
@@ -385,9 +393,9 @@ namespace KaufAuto.GUI
         private System.Windows.Forms.Label lblTyp;
         private System.Windows.Forms.ComboBox cmbTyp;
         private System.Windows.Forms.Label lblMarke;
-        private System.Windows.Forms.TextBox txtMarke;
+        private System.Windows.Forms.ComboBox cmbMarke;
         private System.Windows.Forms.Label lblModell;
-        private System.Windows.Forms.TextBox txtModell;
+        private System.Windows.Forms.ComboBox cmbModell;
         private System.Windows.Forms.Label lblPS;
         private System.Windows.Forms.NumericUpDown nudPS;
         private System.Windows.Forms.Label lblGetriebe;

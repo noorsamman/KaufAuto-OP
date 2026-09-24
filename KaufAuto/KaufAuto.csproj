@@ -50,6 +50,7 @@
     <Compile Include="Interfaces\IAutoService.cs" />
     <Compile Include="Interfaces\ISpeicherService.cs" />
     <Compile Include="Models\Auto.cs" />
+    <Compile Include="Models\FahrzeugKatalog.cs" />
     <Compile Include="Models\PKW.cs" />
     <Compile Include="Models\SUV.cs" />
     <Compile Include="Models\Transporter.cs" />
