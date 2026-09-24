@@ -43,6 +43,8 @@ namespace KaufAuto
                 Console.WriteLine("9 - Autos nach Preis sortieren");
                 Console.WriteLine("10 - Autos nach Baujahr sortieren");
                 Console.WriteLine("11 - Autos nach PS sortieren");
+                Console.WriteLine("12 - Auto verkaufen");
+                Console.WriteLine("13 - Finanzierung berechnen");
                 Console.WriteLine("0 - Programm beenden");
                 Console.WriteLine("===============================");
                 Console.Write("Auswahl eingeben: ");
@@ -126,6 +128,14 @@ namespace KaufAuto
                         Console.WriteLine($"Anzahl Gebrauchtwagen: {adaten.gebraucht}");
                         Console.WriteLine($"Summe Kilometer PKW: {adaten.kmPkw:F2}");
                         Console.WriteLine($"Summe Kilometer Transporter: {adaten.kmTransporter:F2}");
+
+                        var vdaten = manager.ErstelleVerkaufsAuswertung();
+                        Console.WriteLine();
+                        Console.WriteLine("Verkäufe:");
+                        Console.WriteLine($"Verkaufte Autos: {vdaten.verkauft}");
+                        Console.WriteLine($"Umsatz: {vdaten.umsatz:N2} €");
+                        Console.WriteLine($"Verfügbare Autos: {vdaten.verfuegbar}");
+                        Console.WriteLine($"Wert des Bestands: {vdaten.bestandswert:N2} €");
                         break;
 
                     //Speichern
@@ -183,6 +193,32 @@ namespace KaufAuto
                     case "11":
                         manager.SortNachPS();
                         Console.WriteLine("Autos nach PS sortiert.");
+                        break;
+
+                    //Verkaufen
+                    case "12":
+                        Console.Write("ID des Autos zum Verkaufen: ");
+                        if (int.TryParse(Console.ReadLine()?.Trim(), out int idVerkauf))
+                        {
+                            manager.Verkaufen(idVerkauf);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ungültige ID. Bitte eine numerische ID eingeben.");
+                        }
+                        break;
+
+                    //Finanzierung
+                    case "13":
+                        Console.Write("ID des Autos für die Finanzierung: ");
+                        if (int.TryParse(Console.ReadLine()?.Trim(), out int idFinanzierung))
+                        {
+                            manager.FinanzierungBerechnen(idFinanzierung);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ungültige ID. Bitte eine numerische ID eingeben.");
+                        }
                         break;
 
                     //Beenden

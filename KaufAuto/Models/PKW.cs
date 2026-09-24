@@ -14,10 +14,7 @@ namespace KaufAuto.Models
         {
             // gibt die Informationen des PKWs aus
 
-            Console.WriteLine(
-                $"[PKW] ID {Id} – {Marke} {Modell}, {MotorleistungPS} PS, {Getriebe}, Zustand: {Zustand}, " +
-                $"{Kilometerstand} km, {Türenanzahl} Türen, Baujahr {Baujahr}, Preis {Preis:N2} €" 
-            );
+            Console.WriteLine($"[PKW] {BasisInfo()}");
 
         }
     }

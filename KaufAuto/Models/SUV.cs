@@ -13,10 +13,7 @@ namespace KaufAuto.Models
         public override void Info()
         {
             // gibt die Informationen des SUVs aus
-            Console.WriteLine(
-                $"[SUV] ID {Id} – {Marke} {Modell}, {MotorleistungPS} PS, {Getriebe}, Zustand: {Zustand}, " +
-                $"{Kilometerstand} km, {Türenanzahl} Türen, Baujahr {Baujahr}, Preis {Preis:N2} €"
-            );
+            Console.WriteLine($"[SUV] {BasisInfo()}");
 
         }
 

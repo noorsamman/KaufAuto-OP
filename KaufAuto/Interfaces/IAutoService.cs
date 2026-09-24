@@ -16,5 +16,8 @@ namespace KaufAuto.Interfaces
         List<Auto> AlleAutos();
         List<Auto> SucheNachMarke(string marke);
         (int gesamt, int neu, int gebraucht, double kmPkw, double kmTransporter) ErstelleAuswertungen();
+        (int verkauft, decimal umsatz, int verfuegbar, decimal bestandswert) ErstelleVerkaufsAuswertung();
+        bool Verkaufen(int id);
+        void FinanzierungBerechnen(int id);
     }
 }

@@ -28,34 +28,73 @@ namespace KaufAuto.Services
             HatUngespeicherteAenderungen = false;
         }
 
-        // Preis-Eingabe lesen: akzeptiert "25000", "25.000", "24999,99" und "24999.99"
-        private static bool VersuchePreisZuLesen(string eingabe, out decimal preis)
+        // Finanzierungsrechner
+        private readonly FinanzierungsService finanzierung = new FinanzierungsService();
+
+        // mögliche Kraftstoffarten
+        private static readonly string[] Kraftstoffe = { "Benzin", "Diesel", "Elektro", "Hybrid" };
+
+        // Zahl lesen: akzeptiert "25000", "25.000", "24999,99" und "24999.99" (>= 0)
+        private static bool VersucheZahlZuLesen(string eingabe, out decimal zahl)
         {
-            preis = 0;
+            zahl = 0;
             if (string.IsNullOrWhiteSpace(eingabe))
                 return false;
 
-            string text = eingabe.Trim().Replace("€", "").Replace(" ", "");
+            string text = eingabe.Trim().Replace("€", "").Replace("%", "").Replace(" ", "");
             var deutsch = CultureInfo.GetCultureInfo("de-DE");
 
             bool ok;
             if (text.Contains(","))
             {
                 // Komma = Dezimaltrennzeichen (deutsches Format)
-                ok = decimal.TryParse(text, NumberStyles.Number, deutsch, out preis);
+                ok = decimal.TryParse(text, NumberStyles.Number, deutsch, out zahl);
             }
             else if (Regex.IsMatch(text, @"^\d{1,3}(\.\d{3})+$"))
             {
                 // z. B. 25.000 → Punkt ist Tausendertrennzeichen
-                ok = decimal.TryParse(text, NumberStyles.Number, deutsch, out preis);
+                ok = decimal.TryParse(text, NumberStyles.Number, deutsch, out zahl);
             }
             else
             {
                 // z. B. 25000 oder 24999.99
-                ok = decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out preis);
+                ok = decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out zahl);
             }
 
-            return ok && preis > 0;
+            return ok && zahl >= 0;
+        }
+
+        // Preis lesen (muss größer als 0 sein)
+        private static bool VersuchePreisZuLesen(string eingabe, out decimal preis)
+        {
+            return VersucheZahlZuLesen(eingabe, out preis) && preis > 0;
+        }
+
+        // j/n-Abfrage
+        private static bool FrageJaNein(string frage)
+        {
+            Console.Write($"{frage} (j/n): ");
+            string antwort = Console.ReadLine()?.Trim().ToLower();
+            return antwort == "j" || antwort == "ja";
+        }
+
+        // Kraftstoff auswählen; mitLeer = true erlaubt Enter (gibt null zurück)
+        private static string KraftstoffAuswaehlen(bool mitLeer)
+        {
+            Console.Write("Kraftstoff: 1 = Benzin, 2 = Diesel, 3 = Elektro, 4 = Hybrid");
+            Console.WriteLine(mitLeer ? " (Enter = keine Änderung)" : "");
+
+            while (true)
+            {
+                string eingabe = Console.ReadLine()?.Trim();
+                if (mitLeer && string.IsNullOrWhiteSpace(eingabe))
+                    return null;
+
+                if (int.TryParse(eingabe, out int nr) && nr >= 1 && nr <= Kraftstoffe.Length)
+                    return Kraftstoffe[nr - 1];
+
+                Console.WriteLine("Ungültige Eingabe. Bitte 1, 2, 3 oder 4 eingeben.");
+            }
         }
 
         // Auto über ID finden (Hilfsmethode)
@@ -199,6 +238,9 @@ namespace KaufAuto.Services
                 neuesAuto.Getriebe = "Schaltgetriebe";
             }
 
+            // Kraftstoff auswählen
+            neuesAuto.Kraftstoff = KraftstoffAuswaehlen(false);
+
             // Preis eingeben
             decimal preis;
             Console.WriteLine("Preis eingeben (z. B. 25.000 oder 24999,99):");
@@ -284,9 +326,7 @@ namespace KaufAuto.Services
             Console.WriteLine("--------------------------------------");
 
             // Sicherheitsabfrage vor dem Löschen
-            Console.Write("Wirklich löschen? (j/n): ");
-            string antwort = Console.ReadLine()?.Trim().ToLower();
-            if (antwort != "j" && antwort != "ja")
+            if (!FrageJaNein("Wirklich löschen?"))
             {
                 Console.WriteLine("Löschen abgebrochen.");
                 return false;
@@ -383,6 +423,14 @@ namespace KaufAuto.Services
             else if (getriebeEingabe == "2")
             {
                 auto.Getriebe = "Schaltgetriebe";
+            }
+
+            // Kraftstoff bearbeiten
+            Console.WriteLine($"Aktueller Kraftstoff: {auto.Kraftstoff ?? "-"}");
+            string neuerKraftstoff = KraftstoffAuswaehlen(true);
+            if (neuerKraftstoff != null)
+            {
+                auto.Kraftstoff = neuerKraftstoff;
             }
 
             // Preis bearbeiten
@@ -503,6 +551,153 @@ namespace KaufAuto.Services
             return (gesamt, neu, gebraucht, kmPkw, kmTransporter);
         }
 
+        // Verkaufs-Auswertung: Anzahl verkauft, Umsatz, Wert des Restbestands
+        public (int verkauft, decimal umsatz, int verfuegbar, decimal bestandswert) ErstelleVerkaufsAuswertung()
+        {
+            var verkaufte = autos.Where(a => a.Verkauft).ToList();
+            var verfuegbare = autos.Where(a => !a.Verkauft).ToList();
+
+            decimal umsatz = verkaufte.Sum(a => a.Verkaufspreis ?? a.Preis);
+            decimal bestandswert = verfuegbare.Sum(a => a.Preis);
+
+            return (verkaufte.Count, umsatz, verfuegbare.Count, bestandswert);
+        }
+
+        // Auto verkaufen
+        public bool Verkaufen(int id)
+        {
+            Auto auto = FindeAutoById(id);
+
+            if (auto == null)
+            {
+                Console.WriteLine("Kein Auto mit dieser ID gefunden.");
+                return false;
+            }
+
+            auto.Info();
+            Console.WriteLine("----------------------------------------");
+
+            if (auto.Verkauft)
+            {
+                Console.WriteLine("Dieses Auto wurde bereits verkauft.");
+                return false;
+            }
+
+            // Käufer eingeben
+            Console.Write("Name des Käufers: ");
+            string kaeufer = Console.ReadLine()?.Trim();
+            while (string.IsNullOrWhiteSpace(kaeufer))
+            {
+                Console.Write("Bitte einen Namen eingeben: ");
+                kaeufer = Console.ReadLine()?.Trim();
+            }
+
+            // Verkaufspreis (Enter = Listenpreis)
+            Console.Write($"Verkaufspreis (Enter = Listenpreis {auto.Preis:N2} €): ");
+            string preisEingabe = Console.ReadLine();
+            decimal verkaufspreis = auto.Preis;
+            if (!string.IsNullOrWhiteSpace(preisEingabe))
+            {
+                while (!VersuchePreisZuLesen(preisEingabe, out verkaufspreis))
+                {
+                    Console.Write("Ungültiger Preis. Bitte erneut eingeben: ");
+                    preisEingabe = Console.ReadLine();
+                }
+            }
+
+            if (verkaufspreis < auto.Preis)
+            {
+                decimal rabatt = auto.Preis - verkaufspreis;
+                Console.WriteLine($"Rabatt: {rabatt:N2} € ({rabatt / auto.Preis:P1})");
+            }
+
+            if (!FrageJaNein($"Auto an {kaeufer} für {verkaufspreis:N2} € verkaufen?"))
+            {
+                Console.WriteLine("Verkauf abgebrochen.");
+                return false;
+            }
+
+            auto.Verkauft = true;
+            auto.Kaeufer = kaeufer;
+            auto.Verkaufspreis = verkaufspreis;
+            auto.Verkaufsdatum = DateTime.Today;
+            HatUngespeicherteAenderungen = true;
+
+            Console.WriteLine("Auto erfolgreich verkauft!");
+            auto.Info();
+            return true;
+        }
+
+        // Finanzierung für ein Auto berechnen
+        public void FinanzierungBerechnen(int id)
+        {
+            Auto auto = FindeAutoById(id);
+
+            if (auto == null)
+            {
+                Console.WriteLine("Kein Auto mit dieser ID gefunden.");
+                return;
+            }
+
+            auto.Info();
+            Console.WriteLine("----------------------------------------");
+
+            if (auto.Verkauft)
+            {
+                Console.WriteLine("Dieses Auto ist bereits verkauft.");
+                return;
+            }
+
+            // Anzahlung (Enter = 0)
+            decimal anzahlung = 0;
+            Console.Write("Anzahlung in € (Enter = 0): ");
+            string eingabe = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(eingabe))
+            {
+                while (!VersucheZahlZuLesen(eingabe, out anzahlung) || anzahlung >= auto.Preis)
+                {
+                    Console.Write($"Ungültig! Anzahlung muss zwischen 0 und {auto.Preis:N2} € liegen: ");
+                    eingabe = Console.ReadLine();
+                }
+            }
+
+            // Laufzeit
+            int monate;
+            Console.Write("Laufzeit in Monaten (12 - 96): ");
+            while (!int.TryParse(Console.ReadLine(), out monate) || monate < 12 || monate > 96)
+            {
+                Console.Write("Ungültig! Bitte 12 bis 96 Monate eingeben: ");
+            }
+
+            // Zinssatz (Enter = 4,9 %)
+            decimal zins = 4.9m;
+            Console.Write("Zinssatz pro Jahr in % (Enter = 4,9): ");
+            eingabe = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(eingabe))
+            {
+                while (!VersucheZahlZuLesen(eingabe, out zins) || zins > 30)
+                {
+                    Console.Write("Ungültig! Bitte einen Zinssatz zwischen 0 und 30 eingeben: ");
+                    eingabe = Console.ReadLine();
+                }
+            }
+
+            FinanzierungsErgebnis ergebnis = finanzierung.Berechne(auto.Preis, anzahlung, monate, zins);
+
+            Console.WriteLine();
+            Console.WriteLine("========== FINANZIERUNG ==========");
+            Console.WriteLine($"Fahrzeugpreis:    {auto.Preis,14:N2} €");
+            Console.WriteLine($"Anzahlung:        {anzahlung,14:N2} €");
+            Console.WriteLine($"Kreditbetrag:     {ergebnis.Kreditbetrag,14:N2} €");
+            Console.WriteLine($"Laufzeit:         {monate,14} Monate");
+            Console.WriteLine($"Zinssatz:         {zins,14:N2} %");
+            Console.WriteLine("----------------------------------");
+            Console.WriteLine($"Monatsrate:       {ergebnis.Monatsrate,14:N2} €");
+            Console.WriteLine($"Zinskosten:       {ergebnis.Zinskosten,14:N2} €");
+            Console.WriteLine($"Gesamtkosten:     {ergebnis.Gesamtkosten,14:N2} €");
+            Console.WriteLine("==================================");
+        }
+
         // Autos als Tabelle anzeigen (für AlleAutos, Suche, Sortierungen …)
         public void AnzeigenAlsTabelle(List<Auto> liste)
         {
@@ -512,20 +707,23 @@ namespace KaufAuto.Services
                 return;
             }
 
-            Console.WriteLine("---------------------------------------------------------------------------------------------");
+            string linie = new string('-', 124);
+
+            Console.WriteLine(linie);
             Console.WriteLine(
-                $"{"ID",-3} {"Marke",-10} {"Modell",-12} {"Baujahr",-7} {"PS",-5} {"KM",-10} {"Getriebe",-12} {"Zustand",-10} {"Türen",-5} {"Preis",12}"
+                $"{"ID",-3} {"Marke",-10} {"Modell",-12} {"Baujahr",-7} {"PS",-5} {"KM",-8} {"Kraftstoff",-10} {"Getriebe",-14} {"Zustand",-9} {"Türen",-5} {"Preis",14} {"Status",-10}"
             );
-            Console.WriteLine("---------------------------------------------------------------------------------------------");
+            Console.WriteLine(linie);
 
             foreach (var a in liste)
             {
+                string status = a.Verkauft ? "Verkauft" : "Verfügbar";
                 Console.WriteLine(
-                    $"{a.Id,-3} {a.Marke,-10} {a.Modell,-12} {a.Baujahr,-7} {a.MotorleistungPS,-5} {a.Kilometerstand,-10} {a.Getriebe,-12} {a.Zustand,-10} {a.Türenanzahl,-5} {a.Preis,12:N2} €"
+                    $"{a.Id,-3} {a.Marke,-10} {a.Modell,-12} {a.Baujahr,-7} {a.MotorleistungPS,-5} {a.Kilometerstand,-8} {a.Kraftstoff ?? "-",-10} {a.Getriebe,-14} {a.Zustand,-9} {a.Türenanzahl,-5} {a.Preis,12:N2} € {status,-10}"
                 );
             }
 
-            Console.WriteLine("---------------------------------------------------------------------------------------------");
+            Console.WriteLine(linie);
         }
 
         // Sortierung nach Preis
