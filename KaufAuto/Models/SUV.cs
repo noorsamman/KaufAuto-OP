@@ -15,7 +15,7 @@ namespace KaufAuto.Models
             // gibt die Informationen des SUVs aus
             Console.WriteLine(
                 $"[SUV] ID {Id} – {Marke} {Modell}, {MotorleistungPS} PS, {Getriebe}, Zustand: {Zustand}, " +
-                $"{Kilometerstand} km, {Türenanzahl} Türen, Baujahr {Baujahr}, Preis {Preis} €"
+                $"{Kilometerstand} km, {Türenanzahl} Türen, Baujahr {Baujahr}, Preis {Preis:N2} €"
             );
 
         }

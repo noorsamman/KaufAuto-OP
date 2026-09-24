@@ -9,6 +9,9 @@ namespace KaufAuto
     {      // Hauptmethode
         static void Main(string[] args)
         {
+            // damit € und Umlaute in der Konsole richtig angezeigt werden
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
             AutoManager manager = new AutoManager();
             SpeicherService speicher = new SpeicherService();
 
@@ -87,6 +90,7 @@ namespace KaufAuto
 
                     //Alle anzeigen
                     case "4":
+                        Console.WriteLine("Aktueller Fahrzeugbestand:");
                         manager.AnzeigenAlsTabelle(manager.AlleAutos());
                         break;
 
@@ -101,7 +105,15 @@ namespace KaufAuto
                         else
                         {
                             List<Auto> autos = manager.SucheNachMarke(marke);
-                            manager.AnzeigenAlsTabelle(autos);
+                            if (autos.Count == 0)
+                            {
+                                Console.WriteLine("Keine Autos gefunden für diese Marke.");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"{autos.Count} Auto(s) gefunden:");
+                                manager.AnzeigenAlsTabelle(autos);
+                            }
                         }
                         break;
 
@@ -121,6 +133,7 @@ namespace KaufAuto
                         try
                         {
                             speicher.Speichern(manager.AlleAutos());
+                            manager.MarkiereAlsGespeichert();
                         }
                         catch (Exception ex)
                         {
@@ -130,6 +143,17 @@ namespace KaufAuto
 
                     //Laden
                     case "8":
+                        // Warnung: Laden überschreibt ungespeicherte Änderungen
+                        if (manager.HatUngespeicherteAenderungen)
+                        {
+                            Console.Write("Ungespeicherte Änderungen gehen verloren. Trotzdem laden? (j/n): ");
+                            string ladenAntwort = Console.ReadLine()?.Trim().ToLower();
+                            if (ladenAntwort != "j" && ladenAntwort != "ja")
+                            {
+                                Console.WriteLine("Laden abgebrochen.");
+                                break;
+                            }
+                        }
                         try
                         {
                             var neuGeladene = speicher.Laden() ?? new List<Auto>();
@@ -163,7 +187,7 @@ namespace KaufAuto
 
                     //Beenden
                     case "0":
-                        running = false;
+                        running = !BeendenBestaetigen(manager, speicher);
                         break;
 
                     //ungültige Auswahl
@@ -173,9 +197,54 @@ namespace KaufAuto
                 }
 
                 // Warten auf Benutzereingabe bevor das Menü neu angezeigt wird
-                Console.WriteLine("\nWeiter mit Enter...");
-                Console.ReadLine();
-                Console.Clear();
+                if (running)
+                {
+                    Console.WriteLine("\nWeiter mit Enter...");
+                    Console.ReadLine();
+                    Console.Clear();
+                }
+            }
+        }
+
+        // Fragt vor dem Beenden nach, wenn es ungespeicherte Änderungen gibt.
+        // Gibt true zurück, wenn das Programm beendet werden soll.
+        static bool BeendenBestaetigen(AutoManager manager, SpeicherService speicher)
+        {
+            if (!manager.HatUngespeicherteAenderungen)
+            {
+                return true;
+            }
+
+            Console.WriteLine("Es gibt ungespeicherte Änderungen!");
+            Console.WriteLine("j = speichern und beenden, n = ohne Speichern beenden, a = abbrechen");
+
+            while (true)
+            {
+                Console.Write("Auswahl: ");
+                string antwort = Console.ReadLine()?.Trim().ToLower();
+
+                switch (antwort)
+                {
+                    case "j":
+                        try
+                        {
+                            speicher.Speichern(manager.AlleAutos());
+                            manager.MarkiereAlsGespeichert();
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Fehler beim Speichern: {ex.Message}");
+                            return false;
+                        }
+                    case "n":
+                        return true;
+                    case "a":
+                        return false;
+                    default:
+                        Console.WriteLine("Bitte j, n oder a eingeben.");
+                        break;
+                }
             }
         }
     }

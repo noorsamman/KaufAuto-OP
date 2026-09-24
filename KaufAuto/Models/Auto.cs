@@ -15,7 +15,7 @@ namespace KaufAuto.Models
         public string Modell { get; set; }
         public int MotorleistungPS { get; set; }
         public string Getriebe { get; set; }
-        public double Preis { get; set; }
+        public decimal Preis { get; set; }
         public string Zustand {  get; set; }
         public int Kilometerstand { get; set; }
         public int Türenanzahl {  get; set; }

@@ -2,7 +2,9 @@
 using KaufAuto.Models;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
@@ -16,6 +18,45 @@ namespace KaufAuto.Services
 
         // nächste freie ID
         private int naechsteId = 1;
+
+        // true, wenn seit dem letzten Speichern/Laden etwas geändert wurde
+        public bool HatUngespeicherteAenderungen { get; private set; }
+
+        // nach dem Speichern aufrufen
+        public void MarkiereAlsGespeichert()
+        {
+            HatUngespeicherteAenderungen = false;
+        }
+
+        // Preis-Eingabe lesen: akzeptiert "25000", "25.000", "24999,99" und "24999.99"
+        private static bool VersuchePreisZuLesen(string eingabe, out decimal preis)
+        {
+            preis = 0;
+            if (string.IsNullOrWhiteSpace(eingabe))
+                return false;
+
+            string text = eingabe.Trim().Replace("€", "").Replace(" ", "");
+            var deutsch = CultureInfo.GetCultureInfo("de-DE");
+
+            bool ok;
+            if (text.Contains(","))
+            {
+                // Komma = Dezimaltrennzeichen (deutsches Format)
+                ok = decimal.TryParse(text, NumberStyles.Number, deutsch, out preis);
+            }
+            else if (Regex.IsMatch(text, @"^\d{1,3}(\.\d{3})+$"))
+            {
+                // z. B. 25.000 → Punkt ist Tausendertrennzeichen
+                ok = decimal.TryParse(text, NumberStyles.Number, deutsch, out preis);
+            }
+            else
+            {
+                // z. B. 25000 oder 24999.99
+                ok = decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out preis);
+            }
+
+            return ok && preis > 0;
+        }
 
         // Auto über ID finden (Hilfsmethode)
         private Auto FindeAutoById(int id)
@@ -47,6 +88,9 @@ namespace KaufAuto.Services
             {
                 naechsteId = 1;
             }
+
+            // frisch geladene Daten gelten als gespeichert
+            HatUngespeicherteAenderungen = false;
         }
 
         // Autos von JSON laden
@@ -156,9 +200,9 @@ namespace KaufAuto.Services
             }
 
             // Preis eingeben
-            double preis;
-            Console.WriteLine("Preis eingeben:");
-            while (!double.TryParse(Console.ReadLine(), out preis) || preis <= 0)
+            decimal preis;
+            Console.WriteLine("Preis eingeben (z. B. 25.000 oder 24999,99):");
+            while (!VersuchePreisZuLesen(Console.ReadLine(), out preis))
             {
                 Console.WriteLine("Ungültige Eingabe! Preis muss größer als 0 sein.");
                 Console.WriteLine("Preis erneut eingeben:");
@@ -217,6 +261,7 @@ namespace KaufAuto.Services
             if (neuesAuto != null)
             {
                 autos.Add(neuesAuto);
+                HatUngespeicherteAenderungen = true;
                 Console.WriteLine("Fahrzeug erfolgreich hinzugefügt!");
                 neuesAuto.Info();
                 Console.WriteLine("-------------------------------------");
@@ -238,7 +283,17 @@ namespace KaufAuto.Services
             gefundenesAuto.Info();
             Console.WriteLine("--------------------------------------");
 
+            // Sicherheitsabfrage vor dem Löschen
+            Console.Write("Wirklich löschen? (j/n): ");
+            string antwort = Console.ReadLine()?.Trim().ToLower();
+            if (antwort != "j" && antwort != "ja")
+            {
+                Console.WriteLine("Löschen abgebrochen.");
+                return false;
+            }
+
             autos.Remove(gefundenesAuto);
+            HatUngespeicherteAenderungen = true;
 
             Console.WriteLine("Auto erfolgreich gelöscht.");
             Console.WriteLine("-------------------------------------");
@@ -296,14 +351,48 @@ namespace KaufAuto.Services
                 auto.Modell = neuesModell;
             }
 
+            // PS bearbeiten
+            Console.WriteLine($"Aktuelle PS: {auto.MotorleistungPS}");
+            Console.Write("Neue PS eingeben (Enter = keine Änderung): ");
+            string psEingabe = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(psEingabe))
+            {
+                int neuePs;
+                while (!int.TryParse(psEingabe, out neuePs) || neuePs < 1)
+                {
+                    Console.WriteLine("Ungültige Eingabe! PS muss mindestens 1 sein.");
+                    Console.Write("Bitte PS erneut eingeben: ");
+                    psEingabe = Console.ReadLine();
+                }
+                auto.MotorleistungPS = neuePs;
+            }
+
+            // Getriebe bearbeiten
+            Console.WriteLine($"Aktuelles Getriebe: {auto.Getriebe}");
+            Console.Write("Neues Getriebe: 1 = Automatik, 2 = Schaltgetriebe (Enter = keine Änderung): ");
+            string getriebeEingabe = Console.ReadLine()?.Trim();
+            while (!string.IsNullOrWhiteSpace(getriebeEingabe) && getriebeEingabe != "1" && getriebeEingabe != "2")
+            {
+                Console.Write("Ungültige Eingabe. Bitte 1, 2 oder Enter eingeben: ");
+                getriebeEingabe = Console.ReadLine()?.Trim();
+            }
+            if (getriebeEingabe == "1")
+            {
+                auto.Getriebe = "Automatik";
+            }
+            else if (getriebeEingabe == "2")
+            {
+                auto.Getriebe = "Schaltgetriebe";
+            }
+
             // Preis bearbeiten
-            Console.WriteLine($"Aktueller Preis: {auto.Preis}");
+            Console.WriteLine($"Aktueller Preis: {auto.Preis:N2} €");
             Console.Write("Neuen Preis eingeben (Enter = keine Änderung): ");
             string preisEingabe = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(preisEingabe))
             {
-                double neuerPreis;
-                while (!double.TryParse(preisEingabe, out neuerPreis) || neuerPreis <= 0)
+                decimal neuerPreis;
+                while (!VersuchePreisZuLesen(preisEingabe, out neuerPreis))
                 {
                     Console.WriteLine("Ungültige Eingabe! Preis muss eine Zahl und größer als 0 sein.");
                     Console.Write("Bitte Preis erneut eingeben: ");
@@ -312,67 +401,93 @@ namespace KaufAuto.Services
                 auto.Preis = neuerPreis;
             }
 
-            // Kilometer bearbeiten
-            Console.WriteLine($"Aktueller Kilometerstand: {auto.Kilometerstand}");
-            Console.Write("Neuen Kilometerstand eingeben (Enter = keine Änderung): ");
-            string kmEingabe = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(kmEingabe))
+            // Zustand bearbeiten
+            Console.WriteLine($"Aktueller Zustand: {auto.Zustand}");
+            Console.Write("Neuer Zustand: 1 = Neu, 2 = Gebraucht (Enter = keine Änderung): ");
+            string zustandEingabe = Console.ReadLine()?.Trim();
+            while (!string.IsNullOrWhiteSpace(zustandEingabe) && zustandEingabe != "1" && zustandEingabe != "2")
             {
-                int neuerKm;
-                while (!int.TryParse(kmEingabe, out neuerKm) || neuerKm < 0)
-                {
-                    Console.WriteLine("Ungültige Eingabe! Kilometerstand muss eine Zahl und >= 0 sein.");
-                    Console.Write("Bitte Kilometer erneut eingeben: ");
-                    kmEingabe = Console.ReadLine();
-                }
-                auto.Kilometerstand = neuerKm;
+                Console.Write("Ungültige Eingabe. Bitte 1, 2 oder Enter eingeben: ");
+                zustandEingabe = Console.ReadLine()?.Trim();
             }
+            if (zustandEingabe == "1")
+            {
+                auto.Zustand = "Neu";
+            }
+            else if (zustandEingabe == "2")
+            {
+                auto.Zustand = "Gebraucht";
+            }
+
+            // Kilometer bearbeiten (Neuwagen haben immer 0 km)
+            if (auto.Zustand == "Neu")
+            {
+                if (auto.Kilometerstand != 0)
+                {
+                    auto.Kilometerstand = 0;
+                    Console.WriteLine("Kilometerstand wird auf 0 gesetzt (Neuwagen).");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Aktueller Kilometerstand: {auto.Kilometerstand}");
+                Console.Write("Neuen Kilometerstand eingeben (Enter = keine Änderung): ");
+                string kmEingabe = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(kmEingabe))
+                {
+                    int neuerKm;
+                    while (!int.TryParse(kmEingabe, out neuerKm) || neuerKm < 0)
+                    {
+                        Console.WriteLine("Ungültige Eingabe! Kilometerstand muss eine Zahl und >= 0 sein.");
+                        Console.Write("Bitte Kilometer erneut eingeben: ");
+                        kmEingabe = Console.ReadLine();
+                    }
+                    auto.Kilometerstand = neuerKm;
+                }
+            }
+
+            // Türen bearbeiten
+            Console.WriteLine($"Aktuelle Anzahl Türen: {auto.Türenanzahl}");
+            Console.Write("Neue Anzahl Türen (2-5) eingeben (Enter = keine Änderung): ");
+            string tuerenEingabe = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(tuerenEingabe))
+            {
+                int neueTueren;
+                while (!int.TryParse(tuerenEingabe, out neueTueren) || neueTueren < 2 || neueTueren > 5)
+                {
+                    Console.WriteLine("Ungültige Eingabe! Anzahl der Türen muss zwischen 2 und 5 liegen.");
+                    Console.Write("Bitte Anzahl Türen erneut eingeben: ");
+                    tuerenEingabe = Console.ReadLine();
+                }
+                auto.Türenanzahl = neueTueren;
+            }
+
+            HatUngespeicherteAenderungen = true;
 
             Console.WriteLine("Neue Fahrzeugdaten:");
             auto.Info();
             Console.WriteLine("--------------------------------");
         }
 
-        // Alle Autos anzeigen (und zurückgeben)
+        // Alle Autos zurückgeben (Anzeige übernimmt AnzeigenAlsTabelle)
         public List<Auto> AlleAutos()
         {
-            if (autos.Count == 0)
-            {
-                Console.WriteLine("Keine Autos im System vorhanden.");
-                return new List<Auto>();
-            }
-
-            Console.WriteLine("Aktueller Fahrzeugbestand:");
-            AnzeigenAlsTabelle(autos);
-
             return autos;
         }
 
-        // Autos nach Marke suchen
+        // Autos nach Marke suchen (Anzeige übernimmt AnzeigenAlsTabelle)
         public List<Auto> SucheNachMarke(string marke)
         {
             if (string.IsNullOrWhiteSpace(marke))
             {
-                Console.WriteLine("Keine gültige Marke eingegeben.");
                 return new List<Auto>();
             }
 
             string suchbegriff = marke.ToLower();
 
-            var gefundene = autos
+            return autos
                 .Where(a => a.Marke != null && a.Marke.ToLower().Contains(suchbegriff))
                 .ToList();
-
-            if (gefundene.Count == 0)
-            {
-                Console.WriteLine("Keine Autos gefunden für diese Marke.");
-                return new List<Auto>();
-            }
-
-            Console.WriteLine("Gefundene Autos:");
-            AnzeigenAlsTabelle(gefundene);
-
-            return gefundene;
         }
 
         // Auswertungen erstellen
@@ -399,14 +514,14 @@ namespace KaufAuto.Services
 
             Console.WriteLine("---------------------------------------------------------------------------------------------");
             Console.WriteLine(
-                $"{"ID",-3} {"Marke",-10} {"Modell",-12} {"Baujahr",-7} {"PS",-5} {"KM",-10} {"Getriebe",-12} {"Zustand",-10} {"Türen",-5} {"Preis",-10}"
+                $"{"ID",-3} {"Marke",-10} {"Modell",-12} {"Baujahr",-7} {"PS",-5} {"KM",-10} {"Getriebe",-12} {"Zustand",-10} {"Türen",-5} {"Preis",12}"
             );
             Console.WriteLine("---------------------------------------------------------------------------------------------");
 
             foreach (var a in liste)
             {
                 Console.WriteLine(
-                    $"{a.Id,-3} {a.Marke,-10} {a.Modell,-12} {a.Baujahr,-7} {a.MotorleistungPS,-5} {a.Kilometerstand,-10} {a.Getriebe,-12} {a.Zustand,-10} {a.Türenanzahl,-5} {a.Preis,-10}"
+                    $"{a.Id,-3} {a.Marke,-10} {a.Modell,-12} {a.Baujahr,-7} {a.MotorleistungPS,-5} {a.Kilometerstand,-10} {a.Getriebe,-12} {a.Zustand,-10} {a.Türenanzahl,-5} {a.Preis,12:N2} €"
                 );
             }
 

@@ -17,7 +17,7 @@ namespace KaufAuto.Models
             // gibt die Informationen des Transporters aus
             Console.WriteLine(
                 $"[Transporter] ID {Id} – {Marke} {Modell}, {MotorleistungPS} PS, {Getriebe}, Zustand: {Zustand}, " +
-                $"{Kilometerstand} km, {Türenanzahl} Türen, Baujahr {Baujahr}, Preis {Preis} €"
+                $"{Kilometerstand} km, {Türenanzahl} Türen, Baujahr {Baujahr}, Preis {Preis:N2} €"
             );
 
         }
