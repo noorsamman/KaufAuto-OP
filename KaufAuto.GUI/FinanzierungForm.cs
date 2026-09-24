@@ -14,6 +14,8 @@ namespace KaufAuto.GUI
         public FinanzierungForm(Auto auto)
         {
             InitializeComponent();
+            Design.Dialog(this, null, btnSchliessen);
+            lblRate.ForeColor = Design.Primaer;
             this.auto = auto;
 
             lblAuto.Text = $"{auto.Marke} {auto.Modell} (ID {auto.Id})\nPreis: {auto.Preis:N2} €";

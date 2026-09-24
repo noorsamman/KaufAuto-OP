@@ -15,6 +15,8 @@ namespace KaufAuto.GUI
         public VerkaufenForm(Auto auto)
         {
             InitializeComponent();
+            Design.Dialog(this, btnOk, btnAbbrechen);
+            lblRabatt.ForeColor = Design.Erfolg;
             this.auto = auto;
 
             lblAuto.Text = $"{auto.Marke} {auto.Modell} (ID {auto.Id})\nListenpreis: {auto.Preis:N2} €";

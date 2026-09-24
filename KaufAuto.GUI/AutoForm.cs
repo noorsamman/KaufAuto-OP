@@ -15,6 +15,7 @@ namespace KaufAuto.GUI
         public AutoForm(Auto auto)
         {
             InitializeComponent();
+            Design.Dialog(this, btnOk, btnAbbrechen);
             bestehendesAuto = auto;
             nudBaujahr.Maximum = DateTime.Now.Year;
 

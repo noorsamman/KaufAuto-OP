@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using KaufAuto.Models;
@@ -19,6 +18,45 @@ namespace KaufAuto.GUI
             InitializeComponent();
             cmbKraftstoff.SelectedIndex = 0;
             cmbStatus.SelectedIndex = 0;
+            DesignAnwenden();
+        }
+
+        // Farben und Stile aus der Klasse Design übernehmen
+        private void DesignAnwenden()
+        {
+            BackColor = Design.Hintergrund;
+            pnlOben.BackColor = Design.Flaeche;
+            pnlUnten.BackColor = Design.Flaeche;
+            statusStrip.BackColor = Design.Flaeche;
+            statusStrip.SizingGrip = false;
+
+            // Untertitel direkt neben den Titel setzen
+            lblUntertitel.Left = lblTitel.Right + 10;
+            lblUntertitel.Top = lblTitel.Bottom - lblUntertitel.Height - 3;
+
+            Design.Tabelle(dgvAutos);
+            dgvAutos.CellFormatting += dgvAutos_CellFormatting;
+
+            Design.PrimaerButton(btnHinzufuegen);
+            Design.NormalerButton(btnBearbeiten);
+            Design.GefahrButton(btnLoeschen);
+            Design.NormalerButton(btnVerkaufen);
+            Design.NormalerButton(btnFinanzierung);
+            Design.PrimaerButton(btnSpeichern);
+        }
+
+        // Status-Spalte farbig: Verfügbar = grün, Verkauft = grau
+        private void dgvAutos_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (dgvAutos.Columns[e.ColumnIndex] != colStatus || e.Value == null)
+                return;
+
+            bool verkauft = e.Value.ToString() == "Verkauft";
+            e.Value = verkauft ? "● Verkauft" : "● Verfügbar";
+            e.CellStyle.ForeColor = verkauft ? Design.TextGedaempft : Design.Erfolg;
+            e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor;
+            e.CellStyle.Font = Design.SchriftFett;
+            e.FormattingApplied = true;
         }
 
         // Beim Start: Autos aus autos.json laden
@@ -99,8 +137,8 @@ namespace KaufAuto.GUI
             {
                 if (zeile.DataBoundItem is Auto auto && auto.Verkauft)
                 {
-                    zeile.DefaultCellStyle.ForeColor = Color.Gray;
-                    zeile.DefaultCellStyle.BackColor = Color.FromArgb(245, 245, 245);
+                    zeile.DefaultCellStyle.ForeColor = Design.TextGedaempft;
+                    zeile.DefaultCellStyle.SelectionForeColor = Design.TextGedaempft;
                 }
             }
         }

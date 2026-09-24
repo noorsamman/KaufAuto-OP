@@ -19,6 +19,9 @@
         {
             System.Windows.Forms.DataGridViewCellStyle stylKm = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle stylPreis = new System.Windows.Forms.DataGridViewCellStyle();
+            this.pnlHeader = new System.Windows.Forms.Panel();
+            this.lblTitel = new System.Windows.Forms.Label();
+            this.lblUntertitel = new System.Windows.Forms.Label();
             this.pnlOben = new System.Windows.Forms.Panel();
             this.lblSuche = new System.Windows.Forms.Label();
             this.txtSuche = new System.Windows.Forms.TextBox();
@@ -48,11 +51,46 @@
             this.btnSpeichern = new System.Windows.Forms.Button();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.lblInfo = new System.Windows.Forms.ToolStripStatusLabel();
+            this.pnlHeader.SuspendLayout();
             this.pnlOben.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvAutos)).BeginInit();
             this.pnlUnten.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.SuspendLayout();
+            //
+            // pnlHeader
+            //
+            this.pnlHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
+            this.pnlHeader.Controls.Add(this.lblTitel);
+            this.pnlHeader.Controls.Add(this.lblUntertitel);
+            this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlHeader.Location = new System.Drawing.Point(0, 0);
+            this.pnlHeader.Name = "pnlHeader";
+            this.pnlHeader.Size = new System.Drawing.Size(1084, 64);
+            this.pnlHeader.TabIndex = 4;
+            //
+            // lblTitel
+            //
+            this.lblTitel.AutoSize = true;
+            this.lblTitel.Font = new System.Drawing.Font("Segoe UI Semibold", 16F);
+            this.lblTitel.ForeColor = System.Drawing.Color.White;
+            this.lblTitel.Location = new System.Drawing.Point(16, 14);
+            this.lblTitel.Name = "lblTitel";
+            this.lblTitel.Size = new System.Drawing.Size(140, 30);
+            this.lblTitel.TabIndex = 0;
+            this.lblTitel.Text = "KaufAuto OP";
+            //
+            // lblUntertitel
+            //
+            this.lblUntertitel.AutoSize = true;
+            this.lblUntertitel.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.lblUntertitel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
+            this.lblUntertitel.Location = new System.Drawing.Point(160, 23);
+            this.lblUntertitel.Name = "lblUntertitel";
+            this.lblUntertitel.Size = new System.Drawing.Size(210, 19);
+            this.lblUntertitel.TabIndex = 1;
+            this.lblUntertitel.Text = "Fahrzeugverwaltung & Verkauf";
+            this.lblUntertitel.UseMnemonic = false;
             //
             // pnlOben
             //
@@ -358,10 +396,11 @@
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1084, 561);
+            this.ClientSize = new System.Drawing.Size(1084, 625);
             this.Controls.Add(this.dgvAutos);
             this.Controls.Add(this.pnlUnten);
             this.Controls.Add(this.pnlOben);
+            this.Controls.Add(this.pnlHeader);
             this.Controls.Add(this.statusStrip);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.MinimumSize = new System.Drawing.Size(800, 400);
@@ -370,6 +409,8 @@
             this.Text = "KaufAuto OP – Autoverwaltung";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
+            this.pnlHeader.ResumeLayout(false);
+            this.pnlHeader.PerformLayout();
             this.pnlOben.ResumeLayout(false);
             this.pnlOben.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvAutos)).EndInit();
@@ -382,6 +423,9 @@
 
         #endregion
 
+        private System.Windows.Forms.Panel pnlHeader;
+        private System.Windows.Forms.Label lblTitel;
+        private System.Windows.Forms.Label lblUntertitel;
         private System.Windows.Forms.Panel pnlOben;
         private System.Windows.Forms.Label lblSuche;
         private System.Windows.Forms.TextBox txtSuche;
