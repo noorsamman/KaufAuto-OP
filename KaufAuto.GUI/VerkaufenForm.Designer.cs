@@ -23,8 +23,8 @@ namespace KaufAuto.GUI
             this.lblPreis = new System.Windows.Forms.Label();
             this.nudPreis = new System.Windows.Forms.NumericUpDown();
             this.lblRabatt = new System.Windows.Forms.Label();
-            this.btnOk = new System.Windows.Forms.Button();
-            this.btnAbbrechen = new System.Windows.Forms.Button();
+            this.btnOk = new KaufAuto.GUI.ModernButton();
+            this.btnAbbrechen = new KaufAuto.GUI.ModernButton();
             ((System.ComponentModel.ISupportInitialize)(this.nudPreis)).BeginInit();
             this.SuspendLayout();
             //
@@ -147,7 +147,7 @@ namespace KaufAuto.GUI
         private System.Windows.Forms.Label lblPreis;
         private System.Windows.Forms.NumericUpDown nudPreis;
         private System.Windows.Forms.Label lblRabatt;
-        private System.Windows.Forms.Button btnOk;
-        private System.Windows.Forms.Button btnAbbrechen;
+        private KaufAuto.GUI.ModernButton btnOk;
+        private KaufAuto.GUI.ModernButton btnAbbrechen;
     }
 }

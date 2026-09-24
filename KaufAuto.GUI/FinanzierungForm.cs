@@ -15,7 +15,10 @@ namespace KaufAuto.GUI
         {
             InitializeComponent();
             Design.Dialog(this, null, btnSchliessen);
-            lblRate.ForeColor = Design.Primaer;
+            lblRate.ForeColor = Design.Gold;
+            lblKredit.ForeColor = Design.Text;
+            lblZinskosten.ForeColor = Design.Text;
+            lblGesamt.ForeColor = Design.Text;
             this.auto = auto;
 
             lblAuto.Text = $"{auto.Marke} {auto.Modell} (ID {auto.Id})\nPreis: {auto.Preis:N2} €";

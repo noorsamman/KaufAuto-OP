@@ -25,24 +25,51 @@ namespace KaufAuto.GUI
         private void DesignAnwenden()
         {
             BackColor = Design.Hintergrund;
-            pnlOben.BackColor = Design.Flaeche;
-            pnlUnten.BackColor = Design.Flaeche;
-            statusStrip.BackColor = Design.Flaeche;
-            statusStrip.SizingGrip = false;
+            ForeColor = Design.Text;
+            Design.DunkleTitelleiste(this);
 
-            // Untertitel direkt neben den Titel setzen
-            lblUntertitel.Left = lblTitel.Right + 10;
-            lblUntertitel.Top = lblTitel.Bottom - lblUntertitel.Height - 3;
+            // Kopfbereich
+            lblTitel.ForeColor = Design.Gold;
+            lblUntertitel.ForeColor = Design.TextGedaempft;
+            lblDatum.ForeColor = Design.TextGedaempft;
+            lblDatum.Text = DateTime.Today.ToString("dddd, d. MMMM yyyy");
 
+            // Dashboard-Karten
+            kpiVerfuegbar.Akzent = Design.Erfolg;
+            kpiBestand.Akzent = Design.Gold;
+            kpiVerkauft.Akzent = Design.TextGedaempft;
+            kpiUmsatz.Akzent = Design.Gold;
+
+            // Filterleiste
+            Design.Eingabefelder(pnlOben);
+
+            // Tabelle: Marke fett, Preis in Gold
             Design.Tabelle(dgvAutos);
-            dgvAutos.CellFormatting += dgvAutos_CellFormatting;
+            colMarke.DefaultCellStyle.Font = Design.SchriftFett;
+            colPreis.DefaultCellStyle.ForeColor = Design.Gold;
+            colPreis.DefaultCellStyle.SelectionForeColor = Design.GoldHell;
+            colPreis.DefaultCellStyle.Font = Design.SchriftFett;
 
+            // Buttons
             Design.PrimaerButton(btnHinzufuegen);
             Design.NormalerButton(btnBearbeiten);
             Design.GefahrButton(btnLoeschen);
             Design.NormalerButton(btnVerkaufen);
             Design.NormalerButton(btnFinanzierung);
             Design.PrimaerButton(btnSpeichern);
+
+            // Statusleiste
+            statusStrip.BackColor = Design.Hintergrund;
+            lblInfo.ForeColor = Design.TextGedaempft;
+        }
+
+        // feine goldene Linie unter dem Kopfbereich
+        private void pnlHeader_Paint(object sender, PaintEventArgs e)
+        {
+            using (var stift = new System.Drawing.Pen(Design.Rahmen))
+                e.Graphics.DrawLine(stift, 0, pnlHeader.Height - 1, pnlHeader.Width, pnlHeader.Height - 1);
+            using (var stift = new System.Drawing.Pen(Design.Gold, 2))
+                e.Graphics.DrawLine(stift, 24, pnlHeader.Height - 1, 84, pnlHeader.Height - 1);
         }
 
         // Status-Spalte farbig: Verfügbar = grün, Verkauft = grau
@@ -121,10 +148,16 @@ namespace KaufAuto.GUI
                 }
             }
 
-            // Statusleiste unten
+            // Dashboard-Karten
             var v = manager.ErstelleVerkaufsAuswertung();
-            lblInfo.Text = $"Angezeigt: {angezeigt.Count}   |   Verfügbar: {v.verfuegbar} ({v.bestandswert:N2} €)" +
-                           $"   |   Verkauft: {v.verkauft} (Umsatz {v.umsatz:N2} €)";
+            kpiVerfuegbar.Wert = v.verfuegbar.ToString();
+            kpiBestand.Wert = $"{v.bestandswert:N0} €";
+            kpiVerkauft.Wert = v.verkauft.ToString();
+            kpiUmsatz.Wert = $"{v.umsatz:N0} €";
+
+            // Statusleiste unten
+            lblInfo.Text = $"{angezeigt.Count} von {manager.AlleAutos().Count} Fahrzeugen angezeigt" +
+                           (manager.HatUngespeicherteAenderungen ? "   ·   Ungespeicherte Änderungen" : "");
 
             // Sternchen im Titel = ungespeicherte Änderungen
             Text = "KaufAuto OP – Autoverwaltung" + (manager.HatUngespeicherteAenderungen ? " *" : "");

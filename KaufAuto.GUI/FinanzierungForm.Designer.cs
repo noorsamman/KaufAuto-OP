@@ -33,7 +33,7 @@ namespace KaufAuto.GUI
             this.lblZinskosten = new System.Windows.Forms.Label();
             this.lblGesamtText = new System.Windows.Forms.Label();
             this.lblGesamt = new System.Windows.Forms.Label();
-            this.btnSchliessen = new System.Windows.Forms.Button();
+            this.btnSchliessen = new KaufAuto.GUI.ModernButton();
             ((System.ComponentModel.ISupportInitialize)(this.nudAnzahlung)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudLaufzeit)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudZins)).BeginInit();
@@ -296,6 +296,6 @@ namespace KaufAuto.GUI
         private System.Windows.Forms.Label lblZinskosten;
         private System.Windows.Forms.Label lblGesamtText;
         private System.Windows.Forms.Label lblGesamt;
-        private System.Windows.Forms.Button btnSchliessen;
+        private KaufAuto.GUI.ModernButton btnSchliessen;
     }
 }

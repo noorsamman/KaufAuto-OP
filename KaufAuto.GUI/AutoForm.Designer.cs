@@ -39,8 +39,8 @@ namespace KaufAuto.GUI
             this.nudKm = new System.Windows.Forms.NumericUpDown();
             this.lblTueren = new System.Windows.Forms.Label();
             this.nudTueren = new System.Windows.Forms.NumericUpDown();
-            this.btnOk = new System.Windows.Forms.Button();
-            this.btnAbbrechen = new System.Windows.Forms.Button();
+            this.btnOk = new KaufAuto.GUI.ModernButton();
+            this.btnAbbrechen = new KaufAuto.GUI.ModernButton();
             ((System.ComponentModel.ISupportInitialize)(this.nudPS)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudPreis)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudBaujahr)).BeginInit();
@@ -412,7 +412,7 @@ namespace KaufAuto.GUI
         private System.Windows.Forms.NumericUpDown nudKm;
         private System.Windows.Forms.Label lblTueren;
         private System.Windows.Forms.NumericUpDown nudTueren;
-        private System.Windows.Forms.Button btnOk;
-        private System.Windows.Forms.Button btnAbbrechen;
+        private KaufAuto.GUI.ModernButton btnOk;
+        private KaufAuto.GUI.ModernButton btnAbbrechen;
     }
 }
