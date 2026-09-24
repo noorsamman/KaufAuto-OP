@@ -29,6 +29,10 @@ namespace KaufAuto.Models
         public DateTime? Verkaufsdatum { get; set; }
         public decimal? Verkaufspreis { get; set; }
 
+        // Anzeige-Text für Tabellen (wird nicht in JSON gespeichert)
+        public string Status => Verkauft ? "Verkauft" : "Verfügbar";
+        public bool ShouldSerializeStatus() => false;
+
         // abstrakte methode Info
         public abstract void Info();
 

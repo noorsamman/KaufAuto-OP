@@ -97,8 +97,66 @@ namespace KaufAuto.Services
             }
         }
 
-        // Auto über ID finden (Hilfsmethode)
-        private Auto FindeAutoById(int id)
+        // ---------------------------------------------------------------
+        // Logik ohne Konsole – wird von Konsole UND GUI benutzt
+        // ---------------------------------------------------------------
+
+        // fertiges Auto hinzufügen (ID und Typ werden automatisch gesetzt)
+        public void Hinzufuegen(Auto auto)
+        {
+            if (auto == null)
+                throw new ArgumentNullException(nameof(auto));
+
+            auto.Id = GeneriereId();
+            auto.Fahrzeugtyp = auto.GetType().Name;
+
+            // Neuwagen haben immer 0 km
+            if (auto.Zustand == "Neu")
+                auto.Kilometerstand = 0;
+
+            autos.Add(auto);
+            HatUngespeicherteAenderungen = true;
+        }
+
+        // Auto entfernen (ohne Rückfrage)
+        public bool Entfernen(int id)
+        {
+            Auto auto = FindeAutoById(id);
+            if (auto == null)
+                return false;
+
+            autos.Remove(auto);
+            HatUngespeicherteAenderungen = true;
+            return true;
+        }
+
+        // Auto als verkauft markieren (ohne Rückfrage)
+        public bool Verkaufen(int id, string kaeufer, decimal verkaufspreis)
+        {
+            Auto auto = FindeAutoById(id);
+            if (auto == null || auto.Verkauft)
+                return false;
+            if (string.IsNullOrWhiteSpace(kaeufer))
+                throw new ArgumentException("Käufer darf nicht leer sein.", nameof(kaeufer));
+            if (verkaufspreis <= 0)
+                throw new ArgumentException("Verkaufspreis muss größer als 0 sein.", nameof(verkaufspreis));
+
+            auto.Verkauft = true;
+            auto.Kaeufer = kaeufer.Trim();
+            auto.Verkaufspreis = verkaufspreis;
+            auto.Verkaufsdatum = DateTime.Today;
+            HatUngespeicherteAenderungen = true;
+            return true;
+        }
+
+        // nach dem Bearbeiten eines Autos von außen aufrufen (z. B. GUI)
+        public void MarkiereAlsGeaendert()
+        {
+            HatUngespeicherteAenderungen = true;
+        }
+
+        // Auto über ID finden
+        public Auto FindeAutoById(int id)
         {
             foreach (var auto in autos)
             {
@@ -201,10 +259,6 @@ namespace KaufAuto.Services
                     return;
             }
 
-            // automatische ID & Typ setzen
-            neuesAuto.Id = GeneriereId();
-            neuesAuto.Fahrzeugtyp = neuesAuto.GetType().Name;
-
             // Marke und Modell abfragen
             Console.WriteLine("Marke eingeben:");
             neuesAuto.Marke = Console.ReadLine();
@@ -299,11 +353,10 @@ namespace KaufAuto.Services
             }
             neuesAuto.Türenanzahl = tueren;
 
-            // Auto speichern
+            // Auto speichern (ID & Typ werden automatisch gesetzt)
             if (neuesAuto != null)
             {
-                autos.Add(neuesAuto);
-                HatUngespeicherteAenderungen = true;
+                Hinzufuegen(neuesAuto);
                 Console.WriteLine("Fahrzeug erfolgreich hinzugefügt!");
                 neuesAuto.Info();
                 Console.WriteLine("-------------------------------------");
@@ -332,8 +385,7 @@ namespace KaufAuto.Services
                 return false;
             }
 
-            autos.Remove(gefundenesAuto);
-            HatUngespeicherteAenderungen = true;
+            Entfernen(id);
 
             Console.WriteLine("Auto erfolgreich gelöscht.");
             Console.WriteLine("-------------------------------------");
@@ -617,11 +669,7 @@ namespace KaufAuto.Services
                 return false;
             }
 
-            auto.Verkauft = true;
-            auto.Kaeufer = kaeufer;
-            auto.Verkaufspreis = verkaufspreis;
-            auto.Verkaufsdatum = DateTime.Today;
-            HatUngespeicherteAenderungen = true;
+            Verkaufen(id, kaeufer, verkaufspreis);
 
             Console.WriteLine("Auto erfolgreich verkauft!");
             auto.Info();
