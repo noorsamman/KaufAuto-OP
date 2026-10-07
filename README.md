@@ -1,6 +1,6 @@
 # KaufAuto OP – Autoverwaltung
 
-Fahrzeugverwaltung für ein Autohaus in **C# / .NET Framework 4.8** – mit Konsolen-Version und grafischer Oberfläche (**Windows Forms**) im dunklen Premium-Design.
+Fahrzeugverwaltung für ein Autohaus in **C# / .NET Framework 4.8** – mit Konsolen-Version und grafischer Oberfläche (**Windows Forms**) mit dunklem Design.
 
 ## Funktionen
 
