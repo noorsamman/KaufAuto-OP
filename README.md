@@ -29,4 +29,4 @@ Verwendete Konzepte: Vererbung und Polymorphie (abstrakte Klasse `Auto`), Interf
 
 ## Autor
 
-Noor Samman – [github.com/noorsamman](https://github.com/noorsamman)
+Noureddin AlSamman – [github.com/noorsamman](https://github.com/noorsamman)
